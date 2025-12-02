@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.awt.Toolkit;
 import java.io.Serial;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -41,7 +42,9 @@ public final class LambdaFilter extends JFrame {
         /**
          * Commands.
          */
-        IDENTITY("No modifications", Function.identity());
+        IDENTITY("No modifications", Function.identity()),
+
+        LOWERCASE("Lowercase", s -> s.toLowerCase(Locale.ROOT));
 
         private final String commandName;
         private final Function<String, String> fun;
