@@ -56,6 +56,14 @@ public final class LambdaFilter extends JFrame {
             Arrays.stream(s.split("\\s+"))
                   .sorted(String.CASE_INSENSITIVE_ORDER)
                   .collect(Collectors.joining(" "))
+        ),
+
+        WORD_COUNT("Count each word", s -> 
+            Arrays.stream(s.split("\\s+"))
+                  .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                  .entrySet().stream()
+                  .map(e -> e.getKey() + " -> " + e.getValue())
+                  .collect(Collectors.joining(" "))
         );
 
         private final String commandName;
