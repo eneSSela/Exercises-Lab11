@@ -46,7 +46,9 @@ public final class LambdaFilter extends JFrame {
 
         LOWERCASE("Lowercase", s -> s.toLowerCase(Locale.ROOT)),
 
-        CHAR_COUNT("Count characters", s -> String.valueOf(s.length()));
+        CHAR_COUNT("Count characters", s -> String.valueOf(s.length())),
+
+        LINE_COUNT("Count lines", s -> String.valueOf(s.lines().count()));
 
         private final String commandName;
         private final Function<String, String> fun;
