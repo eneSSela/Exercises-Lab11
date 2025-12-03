@@ -4,6 +4,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import it.unibo.oop.JFrameUtil;
 
 import java.io.Serial;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Second example of reactive GUI.
@@ -23,7 +25,7 @@ public final class ConcurrentGUI extends JFrame {
     private final JLabel display = new JLabel();
 
     /**
-     * Builds a Concurrent GUI
+     * Builds a Concurrent GUI.
      */
     public ConcurrentGUI() {
         super();
@@ -38,5 +40,65 @@ public final class ConcurrentGUI extends JFrame {
         panel.add(stop);
         this.getContentPane().add(panel);
         this.setVisible(true);
+        /*
+         * Create the counter agent and start it. This is actually not so good:
+         * thread management should be left to
+         * java.util.concurrent.ExecutorService
+         */
+        final Agent agent = new Agent();
+        new Thread(agent).start();
+
+        up.addActionListener(e -> {
+            agent.upCounting();
+        });
+
+        down.addActionListener(e -> {
+            agent.downCounting();
+        });
+
+        stop.addActionListener(e -> {
+            agent.stopCounting();
+            up.setEnabled(false);
+            down.setEnabled(false);
+            stop.setEnabled(false);
+        });
+    }
+
+    /*
+     * The counter agent is implemented as a nested class. This makes it
+     * invisible outside and encapsulated.
+     */
+    private final class Agent implements Runnable {
+
+        private static final int HUNDRED_MILLIS = 100;
+        private volatile boolean stop;
+        private volatile int direction;
+        private int counter;
+
+        @Override
+        public void run() {
+            while (!this.stop) {
+                try {
+                    final var nextText = Integer.toString(this.counter);
+                    SwingUtilities.invokeAndWait(() -> ConcurrentGUI.this.display.setText(nextText));
+                    this.counter += this.direction;
+                    Thread.sleep(HUNDRED_MILLIS);
+                } catch (InvocationTargetException | InterruptedException ex) {
+                    LOGGER.error(ex.getMessage(), ex);
+                }
+            }
+        }
+
+        public void upCounting() {
+            this.direction = 1;
+        }
+
+        public void stopCounting() {
+            this.stop = true;
+        }
+
+        public void downCounting() {
+            this.direction = -1;
+        }
     }
 }
