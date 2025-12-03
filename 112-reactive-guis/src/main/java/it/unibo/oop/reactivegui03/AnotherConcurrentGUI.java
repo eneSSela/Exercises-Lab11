@@ -1,11 +1,13 @@
 package it.unibo.oop.reactivegui03;
 
 import java.io.Serial;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,5 +40,45 @@ public final class AnotherConcurrentGUI extends JFrame {
         panel.add(stop);
         this.getContentPane().add(panel);
         this.setVisible(true);
+        /*
+         * Create the counter agent and start it. This is actually not so good:
+         * thread management should be left to
+         * java.util.concurrent.ExecutorService
+         */
+        final Agent agent = new Agent();
+    }
+
+    private final class Agent implements Runnable {
+
+        private volatile boolean stop;
+        private volatile int direction;
+        private int counter;
+
+        @Override
+        public void run() {
+            while (!this.stop) {
+                try {
+                    final var nextText = Integer.toString(this.counter);
+                    SwingUtilities.invokeAndWait(() -> AnotherConcurrentGUI.this.display.setText(nextText));
+                    this.counter += this.direction;
+                    Thread.sleep(100);
+                } catch (InvocationTargetException | InterruptedException ex) {
+                    LOGGER.error(ex.getMessage(), ex);
+                }
+            }
+        }
+
+        public void upCounting() {
+            this.direction = 1;
+        }
+
+        public void stopCounting() {
+            this.stop = true;
+
+        }
+
+        public void downCounting() {
+            this.direction = -1;
+        }
     }
 }
