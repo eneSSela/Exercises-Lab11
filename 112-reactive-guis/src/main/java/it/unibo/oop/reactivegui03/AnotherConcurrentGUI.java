@@ -46,6 +46,28 @@ public final class AnotherConcurrentGUI extends JFrame {
          * java.util.concurrent.ExecutorService
          */
         final Agent agent = new Agent();
+        final TimeoutAgent timer = new TimeoutAgent(agent, up, down, stop);
+        new Thread(timer).start();
+        new Thread(agent).start();
+
+        up.addActionListener(e -> {
+            agent.upCounting();
+            up.setEnabled(false);
+            down.setEnabled(true);
+        });
+
+        down.addActionListener(e -> {
+            agent.downCounting();
+            down.setEnabled(false);
+            up.setEnabled(true);
+        });
+
+        stop.addActionListener(e -> {
+            agent.stopCounting();
+            up.setEnabled(false);
+            down.setEnabled(false);
+            stop.setEnabled(false);
+        });
     }
 
     private final class Agent implements Runnable {
@@ -79,6 +101,38 @@ public final class AnotherConcurrentGUI extends JFrame {
 
         public void downCounting() {
             this.direction = -1;
+        }
+    }
+
+    private final class TimeoutAgent implements Runnable {
+
+        private static final int INTERRUPT = 10_000;
+        private final Agent target;
+        private final JButton up;
+        private final JButton down;
+        private final JButton stop;
+
+        TimeoutAgent(final Agent target, final JButton up, final JButton down, final JButton stop) {
+            this.target = target;
+            this.up = up;
+            this.down = down;
+            this.stop = stop;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(INTERRUPT);
+                SwingUtilities.invokeLater(() -> {
+                    up.setEnabled(false);
+                    down.setEnabled(false);
+                    stop.setEnabled(false);
+                });
+            } catch (final InterruptedException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+
+            target.stopCounting();
         }
     }
 }
