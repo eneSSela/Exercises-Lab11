@@ -1,5 +1,8 @@
 package it.unibo.oop.workers02;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A multithreaded implementation of SumMatrix.
  */
@@ -7,6 +10,9 @@ public final class MultiThreadedSumMatrix implements SumMatrix {
 
     private final int n;
 
+    /**
+     * @param n number of worker threads to use. Must be positive.
+     */
     public MultiThreadedSumMatrix(final int n) {
         if (n <= 0) {
             throw new IllegalArgumentException("Number of threads must be positive.");
@@ -16,7 +22,60 @@ public final class MultiThreadedSumMatrix implements SumMatrix {
 
     @Override
     public double sum(double[][] matrix) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sum'");
+
+        final int rows = matrix.length;
+        final int base = rows/this.n;
+        final int extra = rows % this.n;
+
+        final List<Worker> workers = new ArrayList<>();
+
+        int start = 0;
+        for (int i = 0; i < this.n; i++) {
+            final int size;
+            if (i < extra) {
+                size = base + 1;
+            } else {
+                size = base;
+            }
+            final int end = start + size;
+            workers.add(new Worker(matrix, start, end));
+            start = end;
+        }
+
+        for (final Worker w : workers) {
+            w.start();
+        }
+
+        double total = 0;
+        for (final Worker w : workers) {
+            try {
+                w.join();
+                total += w.getResult();
+            } catch (final InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        return total;
+    }
+
+    /**
+     * Worker thread that sums a subset of the matrix rows.
+     */
+    private static final class Worker extends Thread {
+
+        private final double[][] data;
+        private final int startRow;
+        private final int endRow;
+        private volatile double result;
+        
+        public Worker(double[][] matrix, int start, int end) {
+            //TODO Auto-generated constructor stub
+        }
+
+        public double getResult() {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'getResult'");
+        }
     }
 }
