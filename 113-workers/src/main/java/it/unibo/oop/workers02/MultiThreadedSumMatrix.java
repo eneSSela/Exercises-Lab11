@@ -21,10 +21,10 @@ public final class MultiThreadedSumMatrix implements SumMatrix {
     }
 
     @Override
-    public double sum(double[][] matrix) {
+    public double sum(final double[][] matrix) {
 
         final int rows = matrix.length;
-        final int base = rows/this.n;
+        final int base = rows / this.n;
         final int extra = rows % this.n;
 
         final List<Worker> workers = new ArrayList<>();
@@ -68,8 +68,8 @@ public final class MultiThreadedSumMatrix implements SumMatrix {
         private final int startRow;
         private final int endRow;
         private volatile double result;
-        
-        public Worker(double[][] matrix, int start, int end) {
+
+        Worker(final double[][] matrix, final int start, final int end) {
             super();
             this.startRow = start;
             this.endRow = end;
@@ -78,7 +78,7 @@ public final class MultiThreadedSumMatrix implements SumMatrix {
             this.data = new double[size][];
 
             for (int i = 0; i < size; i++) {
-                final double[] src = matrix[start+i];
+                final double[] src = matrix[start + i];
                 final double[] copy = new double[src.length];
                 System.arraycopy(src, 0, copy, 0, src.length);
                 this.data[i] = copy;
