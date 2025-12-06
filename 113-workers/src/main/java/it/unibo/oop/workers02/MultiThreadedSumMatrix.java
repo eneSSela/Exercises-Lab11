@@ -70,12 +70,37 @@ public final class MultiThreadedSumMatrix implements SumMatrix {
         private volatile double result;
         
         public Worker(double[][] matrix, int start, int end) {
-            //TODO Auto-generated constructor stub
+            super();
+            this.startRow = start;
+            this.endRow = end;
+
+            final int size = end - start;
+            this.data = new double[size][];
+
+            for (int i = 0; i < size; i++) {
+                final double[] src = matrix[start+i];
+                final double[] copy = new double[src.length];
+                System.arraycopy(src, 0, copy, 0, src.length);
+                this.data[i] = copy;
+            }
         }
 
-        public double getResult() {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'getResult'");
+        @Override
+        @SuppressWarnings("PMD.SystemPrintln")
+        public synchronized void run() {
+            System.out.println("Worker handling rows " + startRow + "to" + (endRow - 1));
+
+            double sum = 0;
+            for (final double[] row : this.data) {
+                for (final double v : row) {
+                    sum += v;
+                }
+            }
+            this.result = sum;
+        }
+
+        public synchronized double getResult() {
+            return this.result;
         }
     }
 }
